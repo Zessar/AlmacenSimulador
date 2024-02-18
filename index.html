@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    
+    <!-- Configurador del area de trabajo -->
+    <div id="configCanvas">
+        <label for="tableroWidth">Cantidad columnas:</label>
+        <input type="number" id="tableroWidth" value="40">
+
+        <label for="tableroHeight">Cantidad filas:</label>
+        <input type="number" id="tableroHeight" value="40">
+
+        <label for="cuadriculaSize">Tamaño cuadricula:</label>
+        <input type="number" id="cuadriculaSize" value="20">
+
+        <label for="canvasPadding">Espacio area:</label>
+        <input type="number" id="canvasPadding" value="10">
+        
+        <label for="marginCuadricula">Margen cuadricula:</label>
+        <input type="number" id="marginCuadricula" value="2">
+        <button id="buttonArea">Generar Area</button>
+    </div>
+
+    <!-- Configurador del almacen -->
+    <div id="configuracion">
+        <label for="opcionInicioPasillos">Inicio de Pasillos:</label>
+        <select id="opcionInicioPasillos">
+            <option value="1" selected>Opción genérica</option>
+            <option value="2">Personalizado</option>
+        </select>
+        <div id="personalizadoPasillos" style="display: none;">
+            <label for="inicioPasillos"></label>
+            <input type="number" id="inicioPasillos" placeholder="1">
+        </div>
+
+        <label for="nombreUbicaciones">Inicio de Ubicaciones:</label>
+        <select id="opcionInicioUbicaciones">
+            <option value="1" selected>Opción genérica</option>
+            <option value="2">Personalizado</option>
+        </select>
+        <div id="personalizadoUbicaciones" style="display: none;">
+            <label for="inicioUbicaciones"></label>
+            <input type="number" id="inicioUbicaciones" placeholder="1">
+        </div>
+
+        <label for="nombreZona">Nombre de la Zona:</label>
+        <input type="text" id="nombreZona" value="F0A">
+
+        <label for="cantidadPasillos">Cantidad de Pasillos:</label>
+        <input type="number" id="cantidadPasillos" value="4">
+
+        <label for="cantidadUbicaciones">Cantidad de Ubicaciones:</label>
+        <input type="number" id="cantidadUbicaciones" value="10">
+
+        <label for="alturaUbicaciones">Altura de las Ubicaciones:</label>
+        <input type="number" id="alturaUbicaciones" value="4">
+
+        <button id="generarAlmacenButton">Generar Almacen</button>
+    </div>
+
+    <!-- canvas -->
+    <div id="almacen-canvas-container">
+        <canvas id="almacen-canvas" tabindex="0"></canvas>
+    </div>
+    
+    <!-- script de codigo, modularizado -->
+    <script type="module" src="./warehouseLayout.js"></script>
+    <script type="module" src="./canvas/canvas.js"></script>
+    <script type="module" src="./script.js"></script>
+
+</body>
+
+</html>
