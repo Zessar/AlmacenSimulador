@@ -363,37 +363,30 @@ canvas.addEventListener('wheel', function(event) {
 // Coordenadas al seleccionar, verificar si esta dentro del lienzo, verificar si esta dentro del cuadrado
 function handleClick(event) {
     const rect = canvas.getBoundingClientRect();
-    let x = (event.clientX - rect.left) / zoomLevel - offsetX;
-    let y = (event.clientY - rect.top) / zoomLevel - offsetY;
+    const x = (event.clientX - rect.left) / zoomLevel - offsetX;
+    const y = (event.clientY - rect.top) / zoomLevel - offsetY;
 
     // Ajustar las coordenadas en función del padding del canvas
-    x -= canvasPadding;
-    y -= canvasPadding;
+    const adjustedX = x - canvasPadding;
+    const adjustedY = y - canvasPadding;
 
-    // Calcular la columna y fila del tablero
-    let column = Math.floor(x / (cuadriculaSize + marginCuadricula));
-    let row = Math.floor(y / (cuadriculaSize + marginCuadricula));
+    // Verificar si las coordenadas están dentro del tablero
+    if (adjustedX >= 0 && adjustedY >= 0 && adjustedX <= tableroWidth * (cuadriculaSize + marginCuadricula) && adjustedY <= tableroHeight * (cuadriculaSize + marginCuadricula)) {
+        // Calcular la fila y columna del tablero
+        const column = Math.floor(adjustedX / (cuadriculaSize + marginCuadricula));
+        const row = Math.floor(adjustedY / (cuadriculaSize + marginCuadricula));
 
-    // Asegurarse de que la columna y fila están dentro de los límites del tablero
-    column = Math.max(0, Math.min(column, tableroWidth - 1));
-    row = Math.max(0, Math.min(row, tableroHeight - 1));
-
-    // Verificar si el clic se encuentra dentro del área del lienzo, pensando que para verificar el tamaño real del tablero (siempre llamado lienzo y de ahy confusiones con la IA) deberia de meter las variables "tableroWidth" y "tableroHeight" para realizar calculos mas exactos
-    if (x >= canvasPadding / zoomLevel && x <= (canvas.width - canvasPadding) / zoomLevel && y >= canvasPadding / zoomLevel && y <= (canvas.height - canvasPadding) / zoomLevel) {
-        // Verificar si el clic se encuentra dentro de un cuadrado de la cuadrícula
-        if (x % (cuadriculaSize + marginCuadricula) < cuadriculaSize && 
-            y % (cuadriculaSize + marginCuadricula) < cuadriculaSize) {
-            // Manejar la selección según la herramienta seleccionada
-            if (selectedTool === 'selection') {
-                handleSelection(row, column);
-                redrawCanvas(); // Redibujar el tablero después de la selección
-            } else if (selectedTool === 'multiselection') {
-                handleMultiselection(row, column, event);
-                redrawCanvas(); // Redibujar el tablero después de la selección
-            }
+        // Manejar la selección según la herramienta seleccionada
+        if (selectedTool === 'selection') {
+            handleSelection(row, column);
+            redrawCanvas(); // Redibujar el tablero después de la selección
+        } else if (selectedTool === 'multiselection') {
+            handleMultiselection(row, column, event);
+            redrawCanvas(); // Redibujar el tablero después de la selección
         }
     }
 }
+
 
 // --------------------------------------------------------------------------------
 // Herramienta de seleccion individual
@@ -411,13 +404,13 @@ function handleSelection(row, column) {
 function handleMultiselection(row, column, event) {
     if (isMultiselecting) {
         const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left - canvasPadding;
-        const y = event.clientY - rect.top - canvasPadding;
+        const x = (event.clientX - rect.left + offsetX) / zoomLevel;
+        const y = (event.clientY - rect.top + offsetY) / zoomLevel;
                     
-        const minX = Math.min(startX, x);
-        const minY = Math.min(startY, y);
-        const maxX = Math.max(startX, x);
-        const maxY = Math.max(startY, y);
+        const minX = Math.min(startX, x - canvasPadding);
+        const minY = Math.min(startY, y - canvasPadding);
+        const maxX = Math.max(startX, x - canvasPadding);
+        const maxY = Math.max(startY, y - canvasPadding);
         const startColumn = Math.floor(minX / (cuadriculaSize + marginCuadricula));
         const startRow = Math.floor(minY / (cuadriculaSize + marginCuadricula));
         const endColumn = Math.ceil(maxX / (cuadriculaSize + marginCuadricula));
@@ -447,12 +440,13 @@ function handleMultiselection(row, column, event) {
     }
 }
 
-// -----------------------------------------------------------------------------------
-// Grupo de funciones para el recuadro de la herramienta multileseccion, puede que aqui en estas funciones, tambien abra errores de calculos
 function handleMouseDown(event) {
     const rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left + offsetX) / zoomLevel;
     const y = (event.clientY - rect.top + offsetY) / zoomLevel;
+
+    const adjustedX = x + canvasPadding;
+    const adjustedY = y + canvasPadding;
 
     if (selectedTool === 'multiselection') {
         if (event.button !== 0) return; // No hacer nada si no es el clic izquierdo
@@ -460,10 +454,11 @@ function handleMouseDown(event) {
         if (event.button === 0) return; // No hacer nada si es el clic derecho (zoom)
     }
 
-    if (x >= canvasPadding / zoomLevel && x <= (canvas.width - canvasPadding) / zoomLevel && y >= canvasPadding / zoomLevel && y <= (canvas.height - canvasPadding) / zoomLevel) {
+    if (adjustedX >= 0 && adjustedY >= 0 && adjustedX <= (tableroWidth / zoomLevel) * (cuadriculaSize + marginCuadricula) && adjustedY <= (tableroHeight / zoomLevel) * (cuadriculaSize + marginCuadricula)) {
         isDragging = true;
-        startX = Math.max(canvasPadding / zoomLevel, x);
-        startY = Math.max(canvasPadding / zoomLevel, y);
+        startX = Math.max(canvasPadding, x);
+        startY = Math.max(canvasPadding, y);
+        redrawCanvas()
         isMultiselecting = true;
     }
 }
@@ -473,25 +468,22 @@ function handleMouseMove(event) {
         const rect = canvas.getBoundingClientRect();
         const x = (event.clientX - rect.left + offsetX) / zoomLevel;
         const y = (event.clientY - rect.top + offsetY) / zoomLevel;
-
+        
+        
         startX = Math.min((canvas.width - canvasPadding) / zoomLevel, Math.max(canvasPadding / zoomLevel, startX));
         startY = Math.min((canvas.height - canvasPadding) / zoomLevel, Math.max(canvasPadding / zoomLevel, startY));
         endX = Math.min((canvas.width - canvasPadding) / zoomLevel, Math.max(canvasPadding / zoomLevel, x));
         endY = Math.min((canvas.height - canvasPadding) / zoomLevel, Math.max(canvasPadding / zoomLevel, y));
         
         redrawCanvas();
-
+        
         // Dibujar el rectángulo de selección
         ctx.strokeStyle = 'blue';
         const cornerRadius = 20; // Radio de las esquinas redondeadas
         ctx.lineJoin = 'round'; // Utilizar esquinas redondeadas
         ctx.lineWidth = 5; // Grosor de la línea
 
-        // Asi es como deberia de funcionar incluso con el zoom dado
-
-        // ctx.strokeRect(startX, startY, endX - startX, endY - startY);
-
-        // Esta es la solucion momentanea de poder exponer el rectangulo de nultiseleccion cerca del puntero, y es necesario que actue como la anterior
+        // Dibujar el rectángulo de selección teniendo en cuenta el zoom y el desplazamiento del lienzo
         ctx.strokeRect(startX * zoomLevel - offsetX, startY * zoomLevel - offsetY, (endX - startX) * zoomLevel, (endY - startY) * zoomLevel);
     }
 }
@@ -499,6 +491,8 @@ function handleMouseMove(event) {
 function handleMouseUp(event) {
     isDragging = false;
 }
+
+
 
 // -----------------------------------------------------------------------------------
 // Grupo de funciones para manejar el ZOOM
